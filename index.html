@@ -68,15 +68,15 @@
             <h2 class="text-4xl md:text-6xl font-bold mb-6 leading-tight" id="hero-slogan">...</h2>
             <p class="text-lg md:text-xl mb-8 text-gray-200" id="hero-subtext">...</p>
             
-            <button onclick="togglePlayRadio()" class="bg-white text-blue-900 text-lg font-bold py-4 px-10 rounded-full shadow-lg hover:bg-yellow-500 hover:text-white transition transform hover:scale-105 flex items-center mx-auto gap-3">
+            <button id="main-play-btn" onclick="togglePlayRadio()" class="bg-white text-blue-900 text-lg font-bold py-4 px-10 rounded-full shadow-lg hover:bg-yellow-500 hover:text-white transition transform hover:scale-105 flex items-center mx-auto gap-3">
                 <i id="hero-play-icon" class="fas fa-play"></i>
                 <span id="hero-play-text">ESCUCHAR RADIO</span>
             </button>
 
-            <!-- Contenedor Invisible para el script de Listen2MyRadio -->
-            <div class="hidden">
+            <!-- SCRIPTS DE LISTEN2MYRADIO (Carga silenciosa) -->
+            <div id="radio-loader" style="display:none !important; visibility: hidden;">
                 <p id='preview'></p>
-                <script id='myscript' language='javascript' src='http://flashplayer.listen2myradio.com/getInfo.js?id=33ao6lj6gjd0a6t33t6n41n1oci4'></script>
+                <script id='myscript' src='http://flashplayer.listen2myradio.com/getInfo.js?id=33ao6lj6gjd0a6t33t6n41n1oci4'></script>
             </div>
         </div>
     </header>
@@ -100,9 +100,7 @@
                 <h3 class="text-3xl font-bold text-blue-900 mt-1">Estudios Bíblicos</h3>
                 <p class="text-gray-600 mt-2 max-w-2xl mx-auto">Escucha nuestros mensajes grabados ordenados por tema.</p>
             </div>
-
             <div class="flex flex-wrap justify-center gap-2 mb-8" id="topic-filters"></div>
-
             <div id="studies-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
     </section>
@@ -184,8 +182,8 @@
         </div>
     </div>
 
-    <!-- Audio Element -->
-    <audio id="radio-stream" preload="none"></audio>
+    <!-- Audio Element Invisible -->
+    <audio id="radio-stream" crossorigin="anonymous"></audio>
 
     <script>
         const radioConfig = {
@@ -198,10 +196,8 @@
             whatsappVisible: "0972 238 172",
             email: "contacto@feyvidapy.com",
 
-            // --- LISTEN2MYRADIO CONFIG ---
-            // El script de Listen2MyRadio carga automáticamente la info. 
-            // Intentaremos extraer la IP/Puerto si es posible o usar el reproductor nativo.
-            urlStreaming: "", // Si Listen2MyRadio te da un link .mp3 directo, ponlo aquí.
+            // URL DE RESPALDO: Si Listen2MyRadio falla, intenta poner aquí tu IP:PUERTO directo.
+            urlStreamingBackup: "", 
 
             programas: [
                 { hora: "06:00 - 09:00 AM", nombre: "Despertar con Fe", desc: "Alabanzas y lectura matutina.", icono: "fa-sun" },
@@ -216,7 +212,7 @@
             ]
         };
 
-        // Lógica de Inicio
+        // Inicialización
         document.getElementById('nav-radio-name').innerText = radioConfig.nombreRadio;
         document.getElementById('player-station-name').innerText = radioConfig.nombreRadio;
         document.getElementById('hero-slogan').innerText = radioConfig.sloganPrincipal;
@@ -229,7 +225,7 @@
         const progContainer = document.getElementById('programs-container');
         radioConfig.programas.forEach(prog => {
             progContainer.innerHTML += `
-                <div class="bg-gray-50 rounded-xl p-6 flex flex-col items-center text-center shadow-sm">
+                <div class="bg-gray-50 rounded-xl p-6 shadow-sm flex flex-col items-center text-center">
                     <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center text-blue-900 mb-4">
                         <i class="fas ${prog.icono} text-xl"></i>
                     </div>
@@ -262,9 +258,7 @@
             filtered.forEach(estudio => {
                 studiesContainer.innerHTML += `
                     <div class="bg-white p-4 rounded-lg shadow-sm border flex gap-4">
-                        <div class="bg-yellow-100 text-yellow-700 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-play text-xs"></i>
-                        </div>
+                        <div class="bg-yellow-100 text-yellow-700 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"><i class="fas fa-play text-xs"></i></div>
                         <div>
                             <span class="text-[10px] font-bold text-blue-600 uppercase">${estudio.tema}</span>
                             <h4 class="font-bold text-gray-800 text-sm leading-tight">${estudio.titulo}</h4>
@@ -275,48 +269,63 @@
         }
         renderEstudios('Todos');
 
-        // Lógica de Radio (Integración Listen2MyRadio)
+        // LÓGICA DE REPRODUCCIÓN (LISTEN2MYRADIO)
         const audio = document.getElementById('radio-stream');
         let isPlaying = false;
 
         function togglePlayRadio() {
-            // Listen2MyRadio a veces requiere cargar la info del script
-            // Si tienes el enlace directo MP3 es mejor, sino intentamos disparar el play.
-            if (!radioConfig.urlStreaming) {
-                // Si no hay URL directa, intentamos buscarla en el objeto que carga Listen2MyRadio
-                const info = window.info; // Variable global que suele crear su script
-                if (info && info.stream_url) {
-                    audio.src = info.stream_url;
-                } else {
-                    alert("Conectando con el servidor de Listen2MyRadio... Asegúrate de que la radio esté ENCENDIDA en tu panel.");
-                    // Intentamos forzar la URL común de listen2myradio si conocemos el puerto, 
-                    // pero lo ideal es que pegues tu 'Direct Link' en urlStreaming arriba.
-                }
-            }
+            if (!isPlaying) {
+                // INTENTO DE AUTO-DETECCIÓN:
+                // El script de listen2myradio suele crear variables globales. Intentamos leerlas.
+                let streamUrl = "";
 
-            if (isPlaying) {
+                // Intentamos buscar variables que suele dejar el script de Listen2MyRadio
+                if (window.ip && window.port) {
+                    streamUrl = `http://${window.ip}:${window.port}/;stream.mp3`;
+                } else if (radioConfig.urlStreamingBackup) {
+                    streamUrl = radioConfig.urlStreamingBackup;
+                }
+
+                // Si no encontramos nada, notificamos al usuario
+                if (!streamUrl && !audio.src) {
+                    alert("Asegúrate de que tu Radio esté ENCENDIDA en el panel de Listen2MyRadio. Si el botón no suena, pega tu 'Direct Link' en el código.");
+                    // Intentamos una ruta estándar como último recurso
+                    streamUrl = "http://uk1.listen2myradio.com:2199/tunein/33ao6lj6gjd0a6t33t6n41n1oci4.pls";
+                }
+
+                if (streamUrl && !audio.src) audio.src = streamUrl;
+
+                audio.play().then(() => {
+                    isPlaying = true;
+                    updateUI();
+                }).catch(err => {
+                    console.error("Error al reproducir:", err);
+                    alert("Error al conectar. Por favor, verifica que el servidor de la radio esté activo.");
+                });
+            } else {
                 audio.pause();
                 isPlaying = false;
-            } else {
-                audio.play().then(() => { isPlaying = true; }).catch(e => console.log("Error de audio"));
+                updateUI();
             }
-            updateUI();
         }
 
         function updateUI() {
             const btnIcon = document.getElementById('hero-play-icon');
-            const stickyBtnIcon = document.getElementById('player-icon');
+            const btnText = document.getElementById('hero-play-text');
+            const playerIcon = document.getElementById('player-icon');
             const stickyPlayer = document.getElementById('sticky-player');
             const visualizer = document.getElementById('audio-visualizer');
 
             if (isPlaying) {
                 btnIcon.className = "fas fa-pause";
-                stickyBtnIcon.className = "fas fa-pause";
+                btnText.innerText = "DETENER RADIO";
+                playerIcon.className = "fas fa-pause";
                 stickyPlayer.classList.remove('translate-y-full');
                 visualizer.classList.remove('opacity-0');
             } else {
                 btnIcon.className = "fas fa-play";
-                stickyBtnIcon.className = "fas fa-play ml-1";
+                btnText.innerText = "ESCUCHAR RADIO";
+                playerIcon.className = "fas fa-play ml-1";
                 visualizer.classList.add('opacity-0');
             }
         }
