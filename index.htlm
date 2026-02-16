@@ -1,0 +1,392 @@
+<!-- 
+    IMPORTANTE: PASOS PARA GUARDAR ESTE ARCHIVO
+    1. Copia todo este código.
+    2. Pégalo en el Bloc de Notas.
+    3. Al guardar, en "Tipo" selecciona "Todos los archivos".
+    4. Ponle de nombre: index.html
+-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio Fe y Vida PY</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Montserrat', sans-serif; }
+        .hero-bg {
+            background-image: linear-gradient(rgba(0, 51, 102, 0.85), rgba(0, 51, 102, 0.7)), url('https://images.unsplash.com/photo-1478737270239-2f02b77ac6d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
+        .bar { width: 4px; background: #fff; margin: 0 2px; animation: equalizer 1s infinite ease-in-out; }
+        @keyframes equalizer { 0% { height: 5px; } 50% { height: 20px; } 100% { height: 5px; } }
+        
+        /* Estilos para el reproductor de estudios */
+        .study-card:hover .play-overlay { opacity: 1; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
+
+    <!-- Navegación -->
+    <nav class="bg-white shadow-md fixed w-full z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="bg-blue-900 text-white p-2 rounded-full">
+                    <i class="fas fa-dove"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-blue-900 leading-none" id="nav-radio-name">RADIO</h1>
+                    <span class="text-xs text-yellow-600 font-semibold tracking-wider">PARAGUAY</span>
+                </div>
+            </div>
+            
+            <div class="hidden md:flex space-x-6 font-medium text-gray-600">
+                <a href="#inicio" class="hover:text-blue-900 transition">Inicio</a>
+                <a href="#programacion" class="hover:text-blue-900 transition">Programación</a>
+                <a href="#estudios" class="hover:text-blue-900 transition text-blue-800 font-bold">Estudios Bíblicos</a>
+                <a href="#nosotros" class="hover:text-blue-900 transition">Nosotros</a>
+                <a href="#contacto" class="bg-blue-900 text-white px-4 py-2 rounded-full hover:bg-blue-800 transition">Pedidos de Oración</a>
+            </div>
+            <button class="md:hidden text-blue-900 text-2xl" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t p-4 shadow-lg">
+            <a href="#inicio" class="block py-2 text-gray-700 border-b">Inicio</a>
+            <a href="#programacion" class="block py-2 text-gray-700 border-b">Programación</a>
+            <a href="#estudios" class="block py-2 text-gray-700 border-b font-bold text-blue-900">Estudios Bíblicos</a>
+            <a href="#contacto" class="block py-2 text-blue-900 font-bold mt-2">Pedidos de Oración</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header id="inicio" class="hero-bg h-screen flex items-center justify-center text-center text-white px-4 pt-16">
+        <div class="max-w-3xl">
+            <span class="bg-yellow-500 text-blue-900 px-3 py-1 rounded-full text-sm font-bold mb-4 inline-block uppercase tracking-wider">En vivo desde Paraguay</span>
+            <h2 class="text-4xl md:text-6xl font-bold mb-6 leading-tight" id="hero-slogan">...</h2>
+            <p class="text-lg md:text-xl mb-8 text-gray-200" id="hero-subtext">...</p>
+            
+            <button onclick="togglePlayRadio()" class="bg-white text-blue-900 text-lg font-bold py-4 px-10 rounded-full shadow-lg hover:bg-yellow-500 hover:text-white transition transform hover:scale-105 flex items-center mx-auto gap-3">
+                <i id="hero-play-icon" class="fas fa-play"></i>
+                <span id="hero-play-text">ESCUCHAR RADIO</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Programación -->
+    <section id="programacion" class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-10">
+                <h3 class="text-3xl font-bold text-blue-900">Programación en Vivo</h3>
+                <div class="w-16 h-1 bg-yellow-500 mx-auto mt-2"></div>
+            </div>
+            <div id="programs-container" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        </div>
+    </section>
+
+    <!-- NUEVA SECCIÓN: ESTUDIOS BÍBLICOS -->
+    <section id="estudios" class="py-16 bg-blue-50">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-10">
+                <span class="text-blue-600 font-bold text-sm tracking-widest uppercase">Biblioteca de Audios</span>
+                <h3 class="text-3xl font-bold text-blue-900 mt-1">Estudios Bíblicos</h3>
+                <p class="text-gray-600 mt-2 max-w-2xl mx-auto">Escucha nuestros mensajes grabados ordenados por tema cuando quieras.</p>
+            </div>
+
+            <!-- Filtros de Temas -->
+            <div class="flex flex-wrap justify-center gap-2 mb-8" id="topic-filters">
+                <!-- Se generan automáticamente -->
+            </div>
+
+            <!-- Lista de Audios -->
+            <div id="studies-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Se generan automáticamente -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Nosotros -->
+    <section id="nosotros" class="py-16 bg-blue-900 text-white relative overflow-hidden">
+        <i class="fas fa-cross absolute -right-10 top-10 text-9xl text-white opacity-5"></i>
+        <div class="container mx-auto px-4 relative z-10 flex flex-col md:flex-row items-center gap-12">
+            <div class="md:w-1/2">
+                <img src="https://images.unsplash.com/photo-1507692049790-de58293a469d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Estudio" class="rounded-lg shadow-2xl border-4 border-yellow-500">
+            </div>
+            <div class="md:w-1/2">
+                <h3 class="text-3xl font-bold mb-4">Nuestra Misión</h3>
+                <p class="text-gray-300 leading-relaxed mb-6" id="mission-text">...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contacto -->
+    <section id="contacto" class="py-16 bg-gray-100">
+        <div class="container mx-auto px-4 max-w-4xl">
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
+                <div class="md:w-1/3 bg-blue-800 text-white p-8 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-2xl font-bold mb-6">Contáctanos</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3">
+                                <i class="fab fa-whatsapp text-yellow-500 text-xl"></i>
+                                <span id="contact-whatsapp">...</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-envelope text-yellow-500 text-xl"></i>
+                                <span id="contact-email">...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:w-2/3 p-8">
+                    <form onsubmit="sendWhatsapp(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tu Nombre</label>
+                            <input id="form-name" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mensaje o Pedido</label>
+                            <textarea id="form-msg" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-yellow-500 text-blue-900 font-bold py-3 rounded-lg hover:bg-yellow-400 transition shadow-md">
+                            ENVIAR A WHATSAPP
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Player Sticky -->
+    <div id="sticky-player" class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-lg z-50 transform translate-y-full transition-transform duration-300 ease-out">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center text-white animate-pulse-slow">
+                   <i class="fas fa-broadcast-tower"></i>
+                </div>
+                <div>
+                    <div class="text-blue-900 font-bold text-sm leading-tight">EN VIVO</div>
+                    <div class="text-xs text-gray-500" id="player-station-name">Radio Fe y Vida</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-6">
+                <div id="audio-visualizer" class="hidden md:flex items-end h-5 gap-1 opacity-0 transition-opacity">
+                    <div class="bar" style="background: #1e3a8a; animation-duration: 0.5s;"></div>
+                    <div class="bar" style="background: #eab308; animation-duration: 0.7s;"></div>
+                    <div class="bar" style="background: #1e3a8a; animation-duration: 0.4s;"></div>
+                </div>
+                <button onclick="togglePlayRadio()" class="w-12 h-12 rounded-full bg-yellow-500 text-blue-900 flex items-center justify-center hover:bg-yellow-400 shadow-md transition text-xl">
+                    <i id="player-icon" class="fas fa-play ml-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Tags -->
+    <audio id="radio-stream" preload="none"></audio>
+
+    <!-- 
+    =======================================================================
+    *** PANEL DE CONTROL (TU INFORMACIÓN AQUÍ) ***
+    =======================================================================
+    -->
+    <script>
+        const radioConfig = {
+            // --- 1. DATOS GENERALES ---
+            nombreRadio: "RADIO FE Y VIDA",
+            sloganPrincipal: "Llevando la palabra de esperanza a tu corazón",
+            subtitulo: "Música cristiana, predicas y compañía las 24 horas.",
+            misionTexto: "Somos un ministerio radial dedicado a fortalecer la fe de las familias paraguayas mediante la enseñanza bíblica y la adoración.",
+
+            // --- 2. CONTACTO (Aquí puedes editar tu número cuando quieras) ---
+            whatsappNumero: "595972238172", 
+            whatsappVisible: "+595 972 238 172",
+            email: "contacto@feyvidapy.com",
+
+            // --- 3. ENLACE DE RADIO EN VIVO ---
+            urlStreaming: "", 
+
+            // --- 4. PROGRAMACIÓN EN VIVO ---
+            programas: [
+                { hora: "06:00 - 09:00 AM", nombre: "Despertar con Fe", desc: "Alabanzas y lectura matutina.", icono: "fa-sun" },
+                { hora: "14:00 - 17:00 PM", nombre: "Tardes de Alabanza", desc: "Música cristiana variada.", icono: "fa-music" },
+                { hora: "20:00 - 22:00 PM", nombre: "Momento de Oración", desc: "Intercesión en vivo.", icono: "fa-praying-hands" }
+            ],
+
+            // --- 5. ESTUDIOS BÍBLICOS (NUEVO) ---
+            // Copia y pega bloques { ... } para agregar más.
+            // En 'url' pon el link directo al MP3 o el link de Spotify/Youtube.
+            estudiosBiblicos: [
+                {
+                    tema: "Familia",
+                    titulo: "Restaurando el Altar Familiar",
+                    predicador: "Pastor Principal",
+                    url: "#" // Pon aquí el link de tu audio
+                },
+                {
+                    tema: "Fe",
+                    titulo: "La Fe que Mueve Montañas",
+                    predicador: "Hno. Juan Pérez",
+                    url: "#"
+                },
+                {
+                    tema: "Jóvenes",
+                    titulo: "Identidad en Cristo",
+                    predicador: "Líder de Jóvenes",
+                    url: "#"
+                },
+                {
+                    tema: "Familia",
+                    titulo: "El Perdón en el Matrimonio",
+                    predicador: "Pastora María",
+                    url: "#"
+                }
+            ]
+        };
+
+        // =======================================================
+        // LÓGICA DEL SISTEMA (NO NECESITAS TOCAR ESTO)
+        // =======================================================
+
+        // 1. Cargar Textos Básicos
+        document.getElementById('nav-radio-name').innerText = radioConfig.nombreRadio;
+        document.getElementById('player-station-name').innerText = radioConfig.nombreRadio;
+        document.getElementById('hero-slogan').innerText = radioConfig.sloganPrincipal;
+        document.getElementById('hero-subtext').innerText = radioConfig.subtitulo;
+        document.getElementById('mission-text').innerText = radioConfig.misionTexto;
+        document.getElementById('contact-whatsapp').innerText = radioConfig.whatsappVisible;
+        document.getElementById('contact-email').innerText = radioConfig.email;
+        
+        const audio = document.getElementById('radio-stream');
+        if(radioConfig.urlStreaming) audio.src = radioConfig.urlStreaming;
+
+        // 2. Renderizar Programación
+        const progContainer = document.getElementById('programs-container');
+        radioConfig.programas.forEach(prog => {
+            progContainer.innerHTML += `
+                <div class="bg-gray-50 rounded-xl overflow-hidden shadow hover:shadow-lg transition border border-gray-100 p-6 flex flex-col items-center text-center">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-900 mb-4">
+                        <i class="fas ${prog.icono} text-2xl"></i>
+                    </div>
+                    <span class="text-xs text-yellow-600 font-bold uppercase tracking-wide">${prog.hora}</span>
+                    <h4 class="text-lg font-bold text-gray-800 mt-1">${prog.nombre}</h4>
+                    <p class="text-gray-500 mt-2 text-sm">${prog.desc}</p>
+                </div>`;
+        });
+
+        // 3. Renderizar Estudios Bíblicos
+        const studiesContainer = document.getElementById('studies-container');
+        const filterContainer = document.getElementById('topic-filters');
+        
+        // Obtener temas únicos
+        const temas = ['Todos', ...new Set(radioConfig.estudiosBiblicos.map(item => item.tema))];
+
+        // Crear botones de filtro
+        temas.forEach(tema => {
+            const btn = document.createElement('button');
+            btn.className = `px-4 py-1 rounded-full text-sm font-semibold transition border ${tema === 'Todos' ? 'bg-blue-900 text-white border-blue-900' : 'bg-white text-gray-600 border-gray-300 hover:border-blue-900 hover:text-blue-900'}`;
+            btn.innerText = tema;
+            btn.onclick = () => filtrarEstudios(tema, btn);
+            filterContainer.appendChild(btn);
+        });
+
+        function filtrarEstudios(temaSeleccionado, btnElement) {
+            // Actualizar estilo botones
+            Array.from(filterContainer.children).forEach(b => {
+                b.className = 'px-4 py-1 rounded-full text-sm font-semibold transition border bg-white text-gray-600 border-gray-300 hover:border-blue-900 hover:text-blue-900';
+            });
+            btnElement.className = 'px-4 py-1 rounded-full text-sm font-semibold transition border bg-blue-900 text-white border-blue-900';
+
+            // Filtrar y mostrar
+            studiesContainer.innerHTML = '';
+            const filtrados = temaSeleccionado === 'Todos' 
+                ? radioConfig.estudiosBiblicos 
+                : radioConfig.estudiosBiblicos.filter(s => s.tema === temaSeleccionado);
+
+            if(filtrados.length === 0) {
+                studiesContainer.innerHTML = '<p class="text-center text-gray-500 col-span-full">No hay estudios en esta categoría aún.</p>';
+                return;
+            }
+
+            filtrados.forEach(estudio => {
+                studiesContainer.innerHTML += `
+                    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition flex items-start gap-4">
+                        <div class="bg-yellow-100 text-yellow-700 w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center">
+                            <i class="fas fa-headphones"></i>
+                        </div>
+                        <div class="flex-1">
+                            <span class="text-xs font-bold text-blue-600 uppercase mb-1 block">${estudio.tema}</span>
+                            <h4 class="font-bold text-gray-800 leading-tight mb-1">${estudio.titulo}</h4>
+                            <p class="text-sm text-gray-500 mb-3">${estudio.predicador}</p>
+                            <a href="${estudio.url}" target="_blank" class="inline-flex items-center text-sm font-bold text-blue-900 hover:text-yellow-600 transition">
+                                <i class="fas fa-play-circle mr-2"></i> Escuchar Estudio
+                            </a>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // Cargar todos al inicio
+        filtrarEstudios('Todos', filterContainer.children[0]);
+
+        // Funciones del Reproductor (Radio en Vivo)
+        const stickyPlayer = document.getElementById('sticky-player');
+        const heroPlayIcon = document.getElementById('hero-play-icon');
+        const heroPlayText = document.getElementById('hero-play-text');
+        const playerIcon = document.getElementById('player-icon');
+        const visualizer = document.getElementById('audio-visualizer');
+        let isRadioPlaying = false;
+
+        function toggleMenu() { document.getElementById('mobile-menu').classList.toggle('hidden'); }
+
+        function togglePlayRadio() {
+            if (!radioConfig.urlStreaming) {
+                alert("Debes configurar el enlace de streaming en el código para escuchar la radio en vivo.");
+                return;
+            }
+            if (isRadioPlaying) {
+                audio.pause();
+                isRadioPlaying = false;
+                updateRadioUI(false);
+            } else {
+                audio.play().then(() => {
+                    isRadioPlaying = true;
+                    updateRadioUI(true);
+                }).catch(e => { alert("Error al conectar con la radio."); });
+            }
+        }
+
+        function updateRadioUI(playing) {
+            stickyPlayer.classList.remove('translate-y-full');
+            if (playing) {
+                heroPlayIcon.className = "fas fa-pause";
+                heroPlayText.innerText = "DETENER RADIO";
+                playerIcon.className = "fas fa-pause";
+                visualizer.classList.remove('opacity-0');
+            } else {
+                heroPlayIcon.className = "fas fa-play";
+                heroPlayText.innerText = "ESCUCHAR RADIO";
+                playerIcon.className = "fas fa-play ml-1";
+                visualizer.classList.add('opacity-0');
+            }
+        }
+
+        function sendWhatsapp(e) {
+            e.preventDefault();
+            const name = document.getElementById('form-name').value;
+            const msg = document.getElementById('form-msg').value;
+            window.open(`https://wa.me/${radioConfig.whatsappNumero}?text=${encodeURIComponent(`Hola, soy ${name}. ${msg}`)}`, '_blank');
+        }
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300 || isRadioPlaying) stickyPlayer.classList.remove('translate-y-full');
+            else if (!isRadioPlaying) stickyPlayer.classList.add('translate-y-full');
+        });
+    </script>
+</body>
+</html>
