@@ -27,9 +27,6 @@
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
         .bar { width: 4px; background: #fff; margin: 0 2px; animation: equalizer 1s infinite ease-in-out; }
         @keyframes equalizer { 0% { height: 5px; } 50% { height: 20px; } 100% { height: 5px; } }
-        
-        /* Estilos para el reproductor de estudios */
-        .study-card:hover .play-overlay { opacity: 1; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
@@ -75,6 +72,12 @@
                 <i id="hero-play-icon" class="fas fa-play"></i>
                 <span id="hero-play-text">ESCUCHAR RADIO</span>
             </button>
+
+            <!-- Contenedor Invisible para el script de Listen2MyRadio -->
+            <div class="hidden">
+                <p id='preview'></p>
+                <script id='myscript' language='javascript' src='http://flashplayer.listen2myradio.com/getInfo.js?id=33ao6lj6gjd0a6t33t6n41n1oci4'></script>
+            </div>
         </div>
     </header>
 
@@ -89,24 +92,18 @@
         </div>
     </section>
 
-    <!-- NUEVA SECCIÓN: ESTUDIOS BÍBLICOS -->
+    <!-- SECCIÓN: ESTUDIOS BÍBLICOS -->
     <section id="estudios" class="py-16 bg-blue-50">
         <div class="container mx-auto px-4">
             <div class="text-center mb-10">
                 <span class="text-blue-600 font-bold text-sm tracking-widest uppercase">Biblioteca de Audios</span>
                 <h3 class="text-3xl font-bold text-blue-900 mt-1">Estudios Bíblicos</h3>
-                <p class="text-gray-600 mt-2 max-w-2xl mx-auto">Escucha nuestros mensajes grabados ordenados por tema cuando quieras.</p>
+                <p class="text-gray-600 mt-2 max-w-2xl mx-auto">Escucha nuestros mensajes grabados ordenados por tema.</p>
             </div>
 
-            <!-- Filtros de Temas -->
-            <div class="flex flex-wrap justify-center gap-2 mb-8" id="topic-filters">
-                <!-- Se generan automáticamente -->
-            </div>
+            <div class="flex flex-wrap justify-center gap-2 mb-8" id="topic-filters"></div>
 
-            <!-- Lista de Audios -->
-            <div id="studies-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Se generan automáticamente -->
-            </div>
+            <div id="studies-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
     </section>
 
@@ -170,7 +167,7 @@
                    <i class="fas fa-broadcast-tower"></i>
                 </div>
                 <div>
-                    <div class="text-blue-900 font-bold text-sm leading-tight">EN VIVO</div>
+                    <div class="text-blue-900 font-bold text-sm leading-tight uppercase">En Vivo</div>
                     <div class="text-xs text-gray-500" id="player-station-name">Radio Fe y Vida</div>
                 </div>
             </div>
@@ -187,73 +184,39 @@
         </div>
     </div>
 
-    <!-- Audio Tags -->
+    <!-- Audio Element -->
     <audio id="radio-stream" preload="none"></audio>
 
-    <!-- 
-    =======================================================================
-    *** PANEL DE CONTROL (TU INFORMACIÓN AQUÍ) ***
-    =======================================================================
-    -->
     <script>
         const radioConfig = {
-            // --- 1. DATOS GENERALES ---
             nombreRadio: "RADIO FE Y VIDA",
             sloganPrincipal: "Llevando la palabra de esperanza a tu corazón",
             subtitulo: "Música cristiana, predicas y compañía las 24 horas.",
             misionTexto: "Somos un ministerio radial dedicado a fortalecer la fe de las familias paraguayas mediante la enseñanza bíblica y la adoración.",
-
-            // --- 2. CONTACTO (Aquí puedes editar tu número cuando quieras) ---
-            whatsappNumero: "595972238172",  // Tu número corregido (formato internacional sin +)
-            whatsappVisible: "0972 238 172", // Como se ve en la pantalla
+            
+            whatsappNumero: "595972238172",
+            whatsappVisible: "0972 238 172",
             email: "contacto@feyvidapy.com",
 
-            // --- 3. ENLACE DE RADIO EN VIVO ---
-            urlStreaming: "", 
+            // --- LISTEN2MYRADIO CONFIG ---
+            // El script de Listen2MyRadio carga automáticamente la info. 
+            // Intentaremos extraer la IP/Puerto si es posible o usar el reproductor nativo.
+            urlStreaming: "", // Si Listen2MyRadio te da un link .mp3 directo, ponlo aquí.
 
-            // --- 4. PROGRAMACIÓN EN VIVO ---
             programas: [
                 { hora: "06:00 - 09:00 AM", nombre: "Despertar con Fe", desc: "Alabanzas y lectura matutina.", icono: "fa-sun" },
                 { hora: "14:00 - 17:00 PM", nombre: "Tardes de Alabanza", desc: "Música cristiana variada.", icono: "fa-music" },
                 { hora: "20:00 - 22:00 PM", nombre: "Momento de Oración", desc: "Intercesión en vivo.", icono: "fa-praying-hands" }
             ],
 
-            // --- 5. ESTUDIOS BÍBLICOS (AQUÍ CARGAS TUS AUDIOS) ---
-            // Para agregar uno nuevo, COPIA desde la llave { hasta la llave }, y pega abajo.
-            // En "tema" puedes inventar el que quieras (Ej: "Matrimonio", "Finanzas") y el botón se crea solo.
             estudiosBiblicos: [
-                {
-                    tema: "Familia",
-                    titulo: "Restaurando el Altar Familiar",
-                    predicador: "Pastor Principal",
-                    url: "#" // PEGA AQUÍ EL ENLACE DE TU AUDIO (Soundcloud, Drive, etc)
-                },
-                {
-                    tema: "Fe",
-                    titulo: "La Fe que Mueve Montañas",
-                    predicador: "Hno. Juan Pérez",
-                    url: "#"
-                },
-                {
-                    tema: "Jóvenes",
-                    titulo: "Identidad en Cristo",
-                    predicador: "Líder de Jóvenes",
-                    url: "#"
-                },
-                {
-                    tema: "Familia",
-                    titulo: "El Perdón en el Matrimonio",
-                    predicador: "Pastora María",
-                    url: "#"
-                }
+                { tema: "Familia", titulo: "Restaurando el Altar Familiar", predicador: "Pastor Principal", url: "#" },
+                { tema: "Fe", titulo: "La Fe que Mueve Montañas", predicador: "Hno. Juan Pérez", url: "#" },
+                { tema: "Jóvenes", titulo: "Identidad en Cristo", predicador: "Líder de Jóvenes", url: "#" }
             ]
         };
 
-        // =======================================================
-        // LÓGICA DEL SISTEMA (NO NECESITAS TOCAR ESTO)
-        // =======================================================
-
-        // 1. Cargar Textos Básicos
+        // Lógica de Inicio
         document.getElementById('nav-radio-name').innerText = radioConfig.nombreRadio;
         document.getElementById('player-station-name').innerText = radioConfig.nombreRadio;
         document.getElementById('hero-slogan').innerText = radioConfig.sloganPrincipal;
@@ -261,117 +224,99 @@
         document.getElementById('mission-text').innerText = radioConfig.misionTexto;
         document.getElementById('contact-whatsapp').innerText = radioConfig.whatsappVisible;
         document.getElementById('contact-email').innerText = radioConfig.email;
-        
-        const audio = document.getElementById('radio-stream');
-        if(radioConfig.urlStreaming) audio.src = radioConfig.urlStreaming;
 
-        // 2. Renderizar Programación
+        // Render Programas
         const progContainer = document.getElementById('programs-container');
         radioConfig.programas.forEach(prog => {
             progContainer.innerHTML += `
-                <div class="bg-gray-50 rounded-xl overflow-hidden shadow hover:shadow-lg transition border border-gray-100 p-6 flex flex-col items-center text-center">
-                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-900 mb-4">
-                        <i class="fas ${prog.icono} text-2xl"></i>
+                <div class="bg-gray-50 rounded-xl p-6 flex flex-col items-center text-center shadow-sm">
+                    <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center text-blue-900 mb-4">
+                        <i class="fas ${prog.icono} text-xl"></i>
                     </div>
-                    <span class="text-xs text-yellow-600 font-bold uppercase tracking-wide">${prog.hora}</span>
-                    <h4 class="text-lg font-bold text-gray-800 mt-1">${prog.nombre}</h4>
-                    <p class="text-gray-500 mt-2 text-sm">${prog.desc}</p>
+                    <span class="text-xs text-yellow-600 font-bold uppercase">${prog.hora}</span>
+                    <h4 class="text-lg font-bold text-gray-800">${prog.nombre}</h4>
+                    <p class="text-gray-500 text-sm">${prog.desc}</p>
                 </div>`;
         });
 
-        // 3. Renderizar Estudios Bíblicos
+        // Render Estudios
         const studiesContainer = document.getElementById('studies-container');
         const filterContainer = document.getElementById('topic-filters');
-        
-        // Obtener temas únicos
         const temas = ['Todos', ...new Set(radioConfig.estudiosBiblicos.map(item => item.tema))];
 
-        // Crear botones de filtro
         temas.forEach(tema => {
             const btn = document.createElement('button');
-            btn.className = `px-4 py-1 rounded-full text-sm font-semibold transition border ${tema === 'Todos' ? 'bg-blue-900 text-white border-blue-900' : 'bg-white text-gray-600 border-gray-300 hover:border-blue-900 hover:text-blue-900'}`;
+            btn.className = `px-4 py-1 rounded-full text-sm font-semibold transition border ${tema === 'Todos' ? 'bg-blue-900 text-white' : 'bg-white text-gray-600'}`;
             btn.innerText = tema;
-            btn.onclick = () => filtrarEstudios(tema, btn);
+            btn.onclick = () => {
+                document.querySelectorAll('#topic-filters button').forEach(b => b.className = 'px-4 py-1 rounded-full text-sm font-semibold transition border bg-white text-gray-600');
+                btn.className = 'px-4 py-1 rounded-full text-sm font-semibold transition border bg-blue-900 text-white';
+                renderEstudios(tema);
+            };
             filterContainer.appendChild(btn);
         });
 
-        function filtrarEstudios(temaSeleccionado, btnElement) {
-            // Actualizar estilo botones
-            Array.from(filterContainer.children).forEach(b => {
-                b.className = 'px-4 py-1 rounded-full text-sm font-semibold transition border bg-white text-gray-600 border-gray-300 hover:border-blue-900 hover:text-blue-900';
-            });
-            btnElement.className = 'px-4 py-1 rounded-full text-sm font-semibold transition border bg-blue-900 text-white border-blue-900';
-
-            // Filtrar y mostrar
+        function renderEstudios(temaSel) {
             studiesContainer.innerHTML = '';
-            const filtrados = temaSeleccionado === 'Todos' 
-                ? radioConfig.estudiosBiblicos 
-                : radioConfig.estudiosBiblicos.filter(s => s.tema === temaSeleccionado);
-
-            if(filtrados.length === 0) {
-                studiesContainer.innerHTML = '<p class="text-center text-gray-500 col-span-full">No hay estudios en esta categoría aún.</p>';
-                return;
-            }
-
-            filtrados.forEach(estudio => {
+            const filtered = temaSel === 'Todos' ? radioConfig.estudiosBiblicos : radioConfig.estudiosBiblicos.filter(s => s.tema === temaSel);
+            filtered.forEach(estudio => {
                 studiesContainer.innerHTML += `
-                    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition flex items-start gap-4">
-                        <div class="bg-yellow-100 text-yellow-700 w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center">
-                            <i class="fas fa-headphones"></i>
+                    <div class="bg-white p-4 rounded-lg shadow-sm border flex gap-4">
+                        <div class="bg-yellow-100 text-yellow-700 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-play text-xs"></i>
                         </div>
-                        <div class="flex-1">
-                            <span class="text-xs font-bold text-blue-600 uppercase mb-1 block">${estudio.tema}</span>
-                            <h4 class="font-bold text-gray-800 leading-tight mb-1">${estudio.titulo}</h4>
-                            <p class="text-sm text-gray-500 mb-3">${estudio.predicador}</p>
-                            <a href="${estudio.url}" target="_blank" class="inline-flex items-center text-sm font-bold text-blue-900 hover:text-yellow-600 transition">
-                                <i class="fas fa-play-circle mr-2"></i> Escuchar Estudio
-                            </a>
+                        <div>
+                            <span class="text-[10px] font-bold text-blue-600 uppercase">${estudio.tema}</span>
+                            <h4 class="font-bold text-gray-800 text-sm leading-tight">${estudio.titulo}</h4>
+                            <a href="${estudio.url}" target="_blank" class="text-xs text-blue-900 font-bold mt-2 block">ESCUCHAR AHORA</a>
                         </div>
                     </div>`;
             });
         }
+        renderEstudios('Todos');
 
-        // Cargar todos al inicio
-        filtrarEstudios('Todos', filterContainer.children[0]);
-
-        // Funciones del Reproductor (Radio en Vivo)
-        const stickyPlayer = document.getElementById('sticky-player');
-        const heroPlayIcon = document.getElementById('hero-play-icon');
-        const heroPlayText = document.getElementById('hero-play-text');
-        const playerIcon = document.getElementById('player-icon');
-        const visualizer = document.getElementById('audio-visualizer');
-        let isRadioPlaying = false;
-
-        function toggleMenu() { document.getElementById('mobile-menu').classList.toggle('hidden'); }
+        // Lógica de Radio (Integración Listen2MyRadio)
+        const audio = document.getElementById('radio-stream');
+        let isPlaying = false;
 
         function togglePlayRadio() {
+            // Listen2MyRadio a veces requiere cargar la info del script
+            // Si tienes el enlace directo MP3 es mejor, sino intentamos disparar el play.
             if (!radioConfig.urlStreaming) {
-                alert("Debes configurar el enlace de streaming en el código para escuchar la radio en vivo.");
-                return;
+                // Si no hay URL directa, intentamos buscarla en el objeto que carga Listen2MyRadio
+                const info = window.info; // Variable global que suele crear su script
+                if (info && info.stream_url) {
+                    audio.src = info.stream_url;
+                } else {
+                    alert("Conectando con el servidor de Listen2MyRadio... Asegúrate de que la radio esté ENCENDIDA en tu panel.");
+                    // Intentamos forzar la URL común de listen2myradio si conocemos el puerto, 
+                    // pero lo ideal es que pegues tu 'Direct Link' en urlStreaming arriba.
+                }
             }
-            if (isRadioPlaying) {
+
+            if (isPlaying) {
                 audio.pause();
-                isRadioPlaying = false;
-                updateRadioUI(false);
+                isPlaying = false;
             } else {
-                audio.play().then(() => {
-                    isRadioPlaying = true;
-                    updateRadioUI(true);
-                }).catch(e => { alert("Error al conectar con la radio."); });
+                audio.play().then(() => { isPlaying = true; }).catch(e => console.log("Error de audio"));
             }
+            updateUI();
         }
 
-        function updateRadioUI(playing) {
-            stickyPlayer.classList.remove('translate-y-full');
-            if (playing) {
-                heroPlayIcon.className = "fas fa-pause";
-                heroPlayText.innerText = "DETENER RADIO";
-                playerIcon.className = "fas fa-pause";
+        function updateUI() {
+            const btnIcon = document.getElementById('hero-play-icon');
+            const stickyBtnIcon = document.getElementById('player-icon');
+            const stickyPlayer = document.getElementById('sticky-player');
+            const visualizer = document.getElementById('audio-visualizer');
+
+            if (isPlaying) {
+                btnIcon.className = "fas fa-pause";
+                stickyBtnIcon.className = "fas fa-pause";
+                stickyPlayer.classList.remove('translate-y-full');
                 visualizer.classList.remove('opacity-0');
             } else {
-                heroPlayIcon.className = "fas fa-play";
-                heroPlayText.innerText = "ESCUCHAR RADIO";
-                playerIcon.className = "fas fa-play ml-1";
+                btnIcon.className = "fas fa-play";
+                stickyBtnIcon.className = "fas fa-play ml-1";
                 visualizer.classList.add('opacity-0');
             }
         }
@@ -380,13 +325,10 @@
             e.preventDefault();
             const name = document.getElementById('form-name').value;
             const msg = document.getElementById('form-msg').value;
-            window.open(`https://wa.me/${radioConfig.whatsappNumero}?text=${encodeURIComponent(`Hola, soy ${name}. ${msg}`)}`, '_blank');
+            window.open(`https://wa.me/${radioConfig.whatsappNumero}?text=Hola, soy ${name}. Pedido: ${msg}`);
         }
 
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 300 || isRadioPlaying) stickyPlayer.classList.remove('translate-y-full');
-            else if (!isRadioPlaying) stickyPlayer.classList.add('translate-y-full');
-        });
+        function toggleMenu() { document.getElementById('mobile-menu').classList.toggle('hidden'); }
     </script>
 </body>
 </html>
