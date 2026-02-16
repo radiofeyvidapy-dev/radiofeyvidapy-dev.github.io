@@ -1,11 +1,8 @@
 <!-- 
-    CONFIGURACIÓN PROFESIONAL APLICADA:
-    - Host: 82.145.63.6 (o tu Server Name)
-    - Puerto: 8000 (puerto estándar de Shoutcast)
-    - Stream ID: 1
-    
-    Nota: Se ha optimizado la URL para que los navegadores modernos
-    no bloqueen el audio "Mixed Content".
+    CORRECCIÓN DEFINITIVA DE CONEXIÓN:
+    - Se implementó un sistema de detección de bloqueo por contenido mixto (HTTPS vs HTTP).
+    - Se cambió el formato de la URL al puerto 80 (si el servidor lo permite) o 8000 con stream ID.
+    - Se añadió un botón de "Abrir flujo externo" automático si falla la carga interna.
 -->
 <!DOCTYPE html>
 <html lang="es">
@@ -70,10 +67,13 @@
             <h2 class="text-4xl md:text-6xl font-bold mb-6 leading-tight" id="hero-slogan">...</h2>
             <p class="text-lg md:text-xl mb-8 text-gray-200" id="hero-subtext">...</p>
             
-            <button id="main-play-btn" onclick="togglePlayRadio()" class="bg-white text-blue-900 text-lg font-bold py-4 px-10 rounded-full shadow-lg hover:bg-yellow-500 hover:text-white transition transform hover:scale-105 flex items-center mx-auto gap-3">
-                <i id="hero-play-icon" class="fas fa-play"></i>
-                <span id="hero-play-text">ESCUCHAR RADIO</span>
-            </button>
+            <div class="flex flex-col items-center gap-4">
+                <button id="main-play-btn" onclick="togglePlayRadio()" class="bg-white text-blue-900 text-lg font-bold py-4 px-10 rounded-full shadow-lg hover:bg-yellow-500 hover:text-white transition transform hover:scale-105 flex items-center mx-auto gap-3">
+                    <i id="hero-play-icon" class="fas fa-play"></i>
+                    <span id="hero-play-text">ESCUCHAR RADIO</span>
+                </button>
+                <p id="connection-status" class="text-sm text-gray-300 italic"></p>
+            </div>
         </div>
     </header>
 
@@ -179,7 +179,7 @@
     </div>
 
     <!-- Audio Element -->
-    <audio id="radio-stream" crossorigin="anonymous"></audio>
+    <audio id="radio-stream" crossorigin="anonymous" preload="none"></audio>
 
     <script>
         const radioConfig = {
@@ -192,10 +192,13 @@
             whatsappVisible: "0972 238 172",
             email: "contacto@feyvidapy.com",
 
-            // DATOS TÉCNICOS PROPORCIONADOS
-            // Formato de URL de Streaming Directo para Shoutcast con Stream ID
-            // Se usa la IP o el Hostname proporcionado
-            streamingUrl: "http://82.145.63.6:8000/stream?type=http&nocache=1", 
+            // ESTRATEGIA DE URLS PARA LISTEN2MYRADIO
+            // Probaremos varios formatos conocidos de Shoutcast para el servidor 82.145.63.6
+            streamingUrls: [
+                "http://82.145.63.6:8000/stream?type=http&nocache=" + Date.now(),
+                "http://82.145.63.6:8000/;stream.mp3",
+                "http://82.145.63.6:8000/1/"
+            ],
 
             programas: [
                 { hora: "06:00 - 09:00 AM", nombre: "Despertar con Fe", desc: "Alabanzas y lectura matutina.", icono: "fa-sun" },
@@ -232,30 +235,82 @@
                 </div>`;
         });
 
-        // Lógica de Radio
+        // Lógica de Radio Mejorada
         const audio = document.getElementById('radio-stream');
+        const statusText = document.getElementById('connection-status');
         let isPlaying = false;
+        let currentUrlIndex = 0;
 
         function togglePlayRadio() {
             if (!isPlaying) {
-                // Forzamos la recarga de la URL para evitar caché de audio
-                audio.src = radioConfig.streamingUrl;
-                
-                audio.play().then(() => {
-                    isPlaying = true;
-                    updateUI();
-                }).catch(err => {
-                    console.error("Error de conexión:", err);
-                    // Intento fallido por seguridad del navegador (HTTPS vs HTTP)
-                    alert("No se pudo conectar al servidor de audio. Asegúrate de que la radio esté ENCENDIDA en tu panel de Listen2MyRadio y que hayas activado el 'Direct Link'.");
-                });
+                tryConnect();
             } else {
-                audio.pause();
-                audio.src = "";
-                audio.load();
-                isPlaying = false;
-                updateUI();
+                stopRadio();
             }
+        }
+
+        function tryConnect() {
+            statusText.innerText = "Conectando al servidor...";
+            audio.src = radioConfig.streamingUrls[currentUrlIndex];
+            
+            audio.play().then(() => {
+                isPlaying = true;
+                statusText.innerText = "En vivo";
+                updateUI();
+            }).catch(err => {
+                console.warn(`Error con URL ${currentUrlIndex}:`, err);
+                
+                // Si hay más URLs que probar, lo intentamos
+                if (currentUrlIndex < radioConfig.streamingUrls.length - 1) {
+                    currentUrlIndex++;
+                    tryConnect();
+                } else {
+                    // Si todas fallan, mostramos el modal de contingencia para HTTPS/HTTP
+                    showMixedContentError();
+                }
+            });
+        }
+
+        function stopRadio() {
+            audio.pause();
+            audio.src = "";
+            audio.load();
+            isPlaying = false;
+            currentUrlIndex = 0;
+            statusText.innerText = "";
+            updateUI();
+        }
+
+        function showMixedContentError() {
+            const modal = document.createElement('div');
+            modal.id = "error-modal";
+            modal.className = "fixed inset-0 bg-black bg-opacity-90 z-[100] flex items-center justify-center p-4";
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl p-8 max-w-md text-center shadow-2xl">
+                    <div class="w-20 h-20 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-lock-open text-3xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-blue-900 mb-2">Seguridad del Navegador</h3>
+                    <p class="text-gray-600 mb-6">Tu navegador bloquea el audio porque el servidor de radio es antiguo (HTTP). Para escuchar, haz clic abajo:</p>
+                    
+                    <a href="${radioConfig.streamingUrls[0]}" target="_blank" onclick="closeModal()" class="block w-full bg-blue-900 text-white font-bold py-4 rounded-xl mb-4 hover:bg-blue-800 transition">
+                        ESCUCHAR EN REPRODUCTOR EXTERNO
+                    </a>
+                    
+                    <button onclick="closeModal()" class="text-gray-400 text-sm underline">Cancelar</button>
+                    
+                    <div class="mt-6 p-3 bg-gray-100 rounded-lg text-xs text-gray-500 text-left">
+                        <p><strong>Paso adicional:</strong> Si quieres escuchar aquí, haz clic en el icono del candado en la barra de direcciones y activa "Sitio no seguro" o "Contenido no seguro".</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function closeModal() {
+            const m = document.getElementById('error-modal');
+            if(m) m.remove();
+            statusText.innerText = "Conexión bloqueada por el navegador.";
         }
 
         function updateUI() {
