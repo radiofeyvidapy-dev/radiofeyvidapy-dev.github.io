@@ -18,8 +18,6 @@
         }
         .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
-        .bar { width: 4px; background: #fff; margin: 0 2px; animation: equalizer 1s infinite ease-in-out; }
-        @keyframes equalizer { 0% { height: 5px; } 50% { height: 20px; } 100% { height: 5px; } }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
@@ -123,17 +121,6 @@
         </div>
     </section>
 
-    <!-- Contacto -->
-    <section id="contacto" class="py-16 bg-white">
-        <div class="container mx-auto px-4 max-w-xl text-center">
-            <h3 class="text-3xl font-bold text-blue-900 mb-4">¿Necesitas oración?</h3>
-            <p class="text-gray-600 mb-8">Envíanos tu petición y estaremos orando por ti.</p>
-            <a href="https://wa.me/595972238172" target="_blank" class="bg-green-500 text-white font-bold py-4 px-8 rounded-full shadow-lg hover:bg-green-600 transition flex items-center justify-center gap-3">
-                <i class="fab fa-whatsapp text-2xl"></i> ENVIAR PEDIDO DE ORACIÓN
-            </a>
-        </div>
-    </section>
-
     <!-- Sticky Player -->
     <div id="sticky-player" class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-lg z-50 transform translate-y-full transition-transform duration-300">
         <div class="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -166,9 +153,9 @@
         
         let isPlaying = false;
 
-        // ESTRATEGIA: Usamos una URL que el navegador acepta mejor
-        // El formato /;stream.mp3 ayuda a que el navegador lo identifique correctamente
-        const streamUrl = "http://82.145.63.6:8000/;stream.mp3";
+        // NUEVA ESTRATEGIA: URL de Stream directo con protocolo Shoutcast compatible
+        // Si tienes una URL propia de "Direct Link" en el panel, cámbiala aquí.
+        const streamUrl = "http://82.145.63.6:8000/stream?type=http";
 
         function togglePlayRadio() {
             if (!isPlaying) {
@@ -182,8 +169,8 @@
             statusTag.classList.remove('hidden');
             statusText.innerText = "SINTONIZANDO...";
             
-            // Forzar recarga del flujo
-            audio.src = streamUrl + "?t=" + Date.now();
+            // Forzar recarga
+            audio.src = streamUrl + "&nocache=" + Date.now();
             
             audio.play().then(() => {
                 isPlaying = true;
@@ -194,12 +181,29 @@
                 stickyPlayer.classList.remove('translate-y-full');
             }).catch(err => {
                 console.error("Error:", err);
-                statusText.innerText = "ERROR DE CONEXIÓN";
-                
-                // NOTA: Si el navegador sigue bloqueando, esta alerta es necesaria por ley de seguridad de Chrome
-                const userChoice = confirm("Tu navegador bloquea la radio por ser una conexión insegura (HTTP). ¿Deseas abrir la radio en una pestaña segura externa?");
-                if(userChoice) window.open("https://listen2myradio.com/radio.php?ip=82.145.63.6&port=8000", "_blank");
+                statusText.innerText = "BLOQUEADO POR NAVEGADOR";
+                showSecurityFix();
             });
+        }
+
+        function showSecurityFix() {
+            const modal = document.createElement('div');
+            modal.id = 'security-modal';
+            modal.className = 'fixed inset-0 bg-blue-900 bg-opacity-95 z-[200] flex items-center justify-center p-6 text-white text-center';
+            modal.innerHTML = `
+                <div class="max-w-md">
+                    <i class="fas fa-unlock-alt text-5xl text-yellow-500 mb-4"></i>
+                    <h3 class="text-2xl font-bold mb-4">Permitir la Radio</h3>
+                    <p class="mb-6">Tu navegador bloquea el audio porque el servidor de radio es HTTP. Para solucionarlo:</p>
+                    <div class="bg-blue-800 p-4 rounded-lg text-left text-sm mb-6">
+                        <p class="mb-2">1. Haz clic en el <b>Candado</b> junto a la dirección arriba.</p>
+                        <p>2. Busca <b>Configuración del sitio</b> y cambia <b>"Contenido no seguro"</b> a <b>Permitir</b>.</p>
+                    </div>
+                    <button onclick="window.location.reload()" class="w-full bg-yellow-500 text-blue-900 font-bold py-3 rounded-lg mb-3">YA LO HICE, RECARGAR</button>
+                    <a href="http://82.145.63.6:8000/stream" target="_blank" class="block w-full bg-white text-blue-900 font-bold py-3 rounded-lg">ESCUCHAR EN PESTAÑA EXTERNA</a>
+                </div>
+            `;
+            document.body.appendChild(modal);
         }
 
         function stopRadio() {
@@ -211,10 +215,6 @@
             playIcon.className = "fas fa-play";
             playerIcon.className = "fas fa-play ml-1";
             stickyPlayer.classList.add('translate-y-full');
-        }
-
-        function toggleMenu() {
-            // Lógica para menú móvil si es necesario
         }
     </script>
 </body>
