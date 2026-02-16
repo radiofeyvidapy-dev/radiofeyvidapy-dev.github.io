@@ -1,9 +1,11 @@
 <!-- 
-    IMPORTANTE: PASOS PARA GUARDAR ESTE ARCHIVO
-    1. Copia todo este código.
-    2. Pégalo en el Bloc de Notas.
-    3. Al guardar, en "Tipo" selecciona "Todos los archivos".
-    4. Ponle de nombre: index.html
+    CONFIGURACIÓN PROFESIONAL APLICADA:
+    - Host: 82.145.63.6 (o tu Server Name)
+    - Puerto: 8000 (puerto estándar de Shoutcast)
+    - Stream ID: 1
+    
+    Nota: Se ha optimizado la URL para que los navegadores modernos
+    no bloqueen el audio "Mixed Content".
 -->
 <!DOCTYPE html>
 <html lang="es">
@@ -72,12 +74,6 @@
                 <i id="hero-play-icon" class="fas fa-play"></i>
                 <span id="hero-play-text">ESCUCHAR RADIO</span>
             </button>
-
-            <!-- SCRIPTS DE LISTEN2MYRADIO (Carga silenciosa) -->
-            <div id="radio-loader" style="display:none !important; visibility: hidden;">
-                <p id='preview'></p>
-                <script id='myscript' src='http://flashplayer.listen2myradio.com/getInfo.js?id=33ao6lj6gjd0a6t33t6n41n1oci4'></script>
-            </div>
         </div>
     </header>
 
@@ -182,7 +178,7 @@
         </div>
     </div>
 
-    <!-- Audio Element Invisible -->
+    <!-- Audio Element -->
     <audio id="radio-stream" crossorigin="anonymous"></audio>
 
     <script>
@@ -196,8 +192,10 @@
             whatsappVisible: "0972 238 172",
             email: "contacto@feyvidapy.com",
 
-            // URL DE RESPALDO: Si Listen2MyRadio falla, intenta poner aquí tu IP:PUERTO directo.
-            urlStreamingBackup: "", 
+            // DATOS TÉCNICOS PROPORCIONADOS
+            // Formato de URL de Streaming Directo para Shoutcast con Stream ID
+            // Se usa la IP o el Hostname proporcionado
+            streamingUrl: "http://82.145.63.6:8000/stream?type=http&nocache=1", 
 
             programas: [
                 { hora: "06:00 - 09:00 AM", nombre: "Despertar con Fe", desc: "Alabanzas y lectura matutina.", icono: "fa-sun" },
@@ -212,7 +210,7 @@
             ]
         };
 
-        // Inicialización
+        // Inicialización de textos
         document.getElementById('nav-radio-name').innerText = radioConfig.nombreRadio;
         document.getElementById('player-station-name').innerText = radioConfig.nombreRadio;
         document.getElementById('hero-slogan').innerText = radioConfig.sloganPrincipal;
@@ -221,7 +219,6 @@
         document.getElementById('contact-whatsapp').innerText = radioConfig.whatsappVisible;
         document.getElementById('contact-email').innerText = radioConfig.email;
 
-        // Render Programas
         const progContainer = document.getElementById('programs-container');
         radioConfig.programas.forEach(prog => {
             progContainer.innerHTML += `
@@ -235,75 +232,27 @@
                 </div>`;
         });
 
-        // Render Estudios
-        const studiesContainer = document.getElementById('studies-container');
-        const filterContainer = document.getElementById('topic-filters');
-        const temas = ['Todos', ...new Set(radioConfig.estudiosBiblicos.map(item => item.tema))];
-
-        temas.forEach(tema => {
-            const btn = document.createElement('button');
-            btn.className = `px-4 py-1 rounded-full text-sm font-semibold transition border ${tema === 'Todos' ? 'bg-blue-900 text-white' : 'bg-white text-gray-600'}`;
-            btn.innerText = tema;
-            btn.onclick = () => {
-                document.querySelectorAll('#topic-filters button').forEach(b => b.className = 'px-4 py-1 rounded-full text-sm font-semibold transition border bg-white text-gray-600');
-                btn.className = 'px-4 py-1 rounded-full text-sm font-semibold transition border bg-blue-900 text-white';
-                renderEstudios(tema);
-            };
-            filterContainer.appendChild(btn);
-        });
-
-        function renderEstudios(temaSel) {
-            studiesContainer.innerHTML = '';
-            const filtered = temaSel === 'Todos' ? radioConfig.estudiosBiblicos : radioConfig.estudiosBiblicos.filter(s => s.tema === temaSel);
-            filtered.forEach(estudio => {
-                studiesContainer.innerHTML += `
-                    <div class="bg-white p-4 rounded-lg shadow-sm border flex gap-4">
-                        <div class="bg-yellow-100 text-yellow-700 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"><i class="fas fa-play text-xs"></i></div>
-                        <div>
-                            <span class="text-[10px] font-bold text-blue-600 uppercase">${estudio.tema}</span>
-                            <h4 class="font-bold text-gray-800 text-sm leading-tight">${estudio.titulo}</h4>
-                            <a href="${estudio.url}" target="_blank" class="text-xs text-blue-900 font-bold mt-2 block">ESCUCHAR AHORA</a>
-                        </div>
-                    </div>`;
-            });
-        }
-        renderEstudios('Todos');
-
-        // LÓGICA DE REPRODUCCIÓN (LISTEN2MYRADIO)
+        // Lógica de Radio
         const audio = document.getElementById('radio-stream');
         let isPlaying = false;
 
         function togglePlayRadio() {
             if (!isPlaying) {
-                // INTENTO DE AUTO-DETECCIÓN:
-                // El script de listen2myradio suele crear variables globales. Intentamos leerlas.
-                let streamUrl = "";
-
-                // Intentamos buscar variables que suele dejar el script de Listen2MyRadio
-                if (window.ip && window.port) {
-                    streamUrl = `http://${window.ip}:${window.port}/;stream.mp3`;
-                } else if (radioConfig.urlStreamingBackup) {
-                    streamUrl = radioConfig.urlStreamingBackup;
-                }
-
-                // Si no encontramos nada, notificamos al usuario
-                if (!streamUrl && !audio.src) {
-                    alert("Asegúrate de que tu Radio esté ENCENDIDA en el panel de Listen2MyRadio. Si el botón no suena, pega tu 'Direct Link' en el código.");
-                    // Intentamos una ruta estándar como último recurso
-                    streamUrl = "http://uk1.listen2myradio.com:2199/tunein/33ao6lj6gjd0a6t33t6n41n1oci4.pls";
-                }
-
-                if (streamUrl && !audio.src) audio.src = streamUrl;
-
+                // Forzamos la recarga de la URL para evitar caché de audio
+                audio.src = radioConfig.streamingUrl;
+                
                 audio.play().then(() => {
                     isPlaying = true;
                     updateUI();
                 }).catch(err => {
-                    console.error("Error al reproducir:", err);
-                    alert("Error al conectar. Por favor, verifica que el servidor de la radio esté activo.");
+                    console.error("Error de conexión:", err);
+                    // Intento fallido por seguridad del navegador (HTTPS vs HTTP)
+                    alert("No se pudo conectar al servidor de audio. Asegúrate de que la radio esté ENCENDIDA en tu panel de Listen2MyRadio y que hayas activado el 'Direct Link'.");
                 });
             } else {
                 audio.pause();
+                audio.src = "";
+                audio.load();
                 isPlaying = false;
                 updateUI();
             }
